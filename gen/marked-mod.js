@@ -459,7 +459,8 @@ var inline = {
   code: /^(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/,
   br: /^ {2,}\n(?!\s*$)/,
   del: noop,
-  text: /^[\s\S]+?(?=[\\<!\[_*`]| {2,}\n|$)/
+  text: /^[\s\S]+?(?=[\\<!\[_*`]| {2,}\n|$)/,
+  math: /^\$([^\$]+)\$/
 };
 
 inline._inside = /(?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*/;
@@ -570,6 +571,13 @@ InlineLexer.prototype.output = function(src) {
     if (cap = this.rules.escape.exec(src)) {
       src = src.substring(cap[0].length);
       out = out.concat(cap[1]);
+      continue;
+    }
+
+    // math
+    if (cap = this.rules.math.exec(src)) {
+      src = src.substring(cap[0].length);
+      out = out.concat(this.renderer.math(cap[1]));
       continue;
     }
 
@@ -888,6 +896,10 @@ Renderer.prototype.image = function(href, title, text) {
   }
   out = out.concat(this.options.xhtml ? '/>' : '>');
   return out;
+};
+
+Renderer.prototype.math = function(tex) {
+  return '<math>' + tex + '</math>';
 };
 
 /**
@@ -1272,4 +1284,3 @@ if (typeof module !== 'undefined' && typeof exports === 'object') {
 }).call(function() {
   return this || (typeof window !== 'undefined' ? window : global);
 }());
-

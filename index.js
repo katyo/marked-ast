@@ -38,7 +38,8 @@ var handlerArgs = {
   br: [],
   del: ['text'],
   link: ['href', 'title', 'text'],
-  image: ['href', 'title', 'text']
+  image: ['href', 'title', 'text'],
+  math: ['tex']
 };
 
 function isObject(obj) {
