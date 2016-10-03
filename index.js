@@ -25,6 +25,7 @@ var handlerArgs = {
   blockquote: ['quote'],
   html: ['html'],
   heading: ['text', 'level', 'raw'],
+  anchor: ['id'],
   hr: [],
   list: ['body', 'ordered'],
   listitem: ['text'],

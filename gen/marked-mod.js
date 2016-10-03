@@ -15,9 +15,9 @@ var block = {
   code: /^( {4}[^\n]+\n*)+/,
   fences: noop,
   hr: /^( *[-*_]){3,} *(?:\n+|$)/,
-  heading: /^ *(#{1,6}) *([^\n]+?) *#* *(?:\n+|$)/,
+  heading: /^ *(#{1,6}) +((\x5e([\w-]+)) +)?([^\n]+?) *#* *(?:\n+|$)/,
   nptable: noop,
-  lheading: /^([^\n]+)\n *(=|-){2,} *(?:\n+|$)/,
+  lheading: /^((\x5e([\w-]+)) +)?([^\n]+)\n *(=|-){2,} *(?:\n+|$)/,
   blockquote: /^( *>[^\n]+(\n(?!def)[^\n]+)*\n*)+/,
   list: /^( *)(bull) [\s\S]+?(?:hr|def|\n{2,}(?! )(?!\1bull )\n*|\s*$)/,
   html: /^ *(?:comment *(?:\n|\s*$)|closed *(?:\n{2,}|\s*$)|closing *(?:\n{2,}|\s*$))/,
@@ -147,8 +147,8 @@ Lexer.prototype.lex = function(src) {
  */
 
 Lexer.prototype.token = function(src, top, bq) {
-  var src = src.replace(/^ +$/gm, '')
-    , next
+  src = src.replace(/^ +$/gm, '');
+  var next
     , loose
     , cap
     , bull
@@ -200,7 +200,8 @@ Lexer.prototype.token = function(src, top, bq) {
       this.tokens.push({
         type: 'heading',
         depth: cap[1].length,
-        text: cap[2]
+        anchor: cap[4],
+        text: cap[5]
       });
       continue;
     }
@@ -242,8 +243,9 @@ Lexer.prototype.token = function(src, top, bq) {
       src = src.substring(cap[0].length);
       this.tokens.push({
         type: 'heading',
-        depth: cap[2] === '=' ? 1 : 2,
-        text: cap[1]
+        depth: cap[5] === '=' ? 1 : 2,
+        anchor: cap[3],
+        text: cap[4]
       });
       continue;
     }
@@ -460,6 +462,7 @@ var inline = {
   br: /^ {2,}\n(?!\s*$)/,
   del: noop,
   text: /^[\s\S]+?(?=[\\<!\[_*`\{\|%\x5e$\?]| {2,}\n|$)/,
+  anchor: /^ *\x5e([\w-]+) */,
   math: /^\$([^\$]+)\$/
 };
 
@@ -684,6 +687,13 @@ InlineLexer.prototype.output = function(src) {
       continue;
     }
 
+    // anchor
+    if (cap = this.rules.anchor.exec(src)) {
+      src = src.substring(cap[0].length);
+      out = out.concat(this.renderer.anchor(cap[1]));
+      continue;
+    }
+
     // text
     if (cap = this.rules.text.exec(src)) {
       src = src.substring(cap[0].length);
@@ -794,12 +804,12 @@ Renderer.prototype.html = function(html) {
   return html;
 };
 
-Renderer.prototype.heading = function(text, level, raw) {
+Renderer.prototype.heading = function(text, level, raw, anchor) {
   return '<h'
     + level
     + ' id="'
-    + this.options.headerPrefix
-    + raw.toLowerCase().replace(/[^\w]+/g, '-')
+    + (this.options.headerPrefix || '')
+    + (anchor || raw.toLowerCase().replace(/[^\w]+/g, '-'))
     + '">'
     + text
     + '</h'
@@ -986,7 +996,8 @@ Parser.prototype.tok = function() {
       return this.renderer.heading(
         this.inline.output(this.token.text),
         this.token.depth,
-        this.token.text);
+        this.token.text,
+        this.token.anchor);
     }
     case 'code': {
       return this.renderer.code(this.token.text,
