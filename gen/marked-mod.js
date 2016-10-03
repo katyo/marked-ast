@@ -15,9 +15,9 @@ var block = {
   code: /^( {4}[^\n]+\n*)+/,
   fences: noop,
   hr: /^( *[-*_]){3,} *(?:\n+|$)/,
-  heading: /^ *(#{1,6}) +((\x5e([\w-]+)) +)?([^\n]+?) *#* *(?:\n+|$)/,
+  heading: /^ *(#{1,6}) +(?:(?:\x5e([\w-]+)) +)?([^\n]+?) *#* *(?:\n+|$)/,
   nptable: noop,
-  lheading: /^((\x5e([\w-]+)) +)?([^\n]+)\n *(=|-){2,} *(?:\n+|$)/,
+  lheading: /^ *(?:(?:\x5e([\w-]+)) )? *([^\n]+)\n *(=|-){2,} *(?:\n+|$)/,
   blockquote: /^( *>[^\n]+(\n(?!def)[^\n]+)*\n*)+/,
   list: /^( *)(bull) [\s\S]+?(?:hr|def|\n{2,}(?! )(?!\1bull )\n*|\s*$)/,
   html: /^ *(?:comment *(?:\n|\s*$)|closed *(?:\n{2,}|\s*$)|closing *(?:\n{2,}|\s*$))/,
@@ -200,8 +200,8 @@ Lexer.prototype.token = function(src, top, bq) {
       this.tokens.push({
         type: 'heading',
         depth: cap[1].length,
-        anchor: cap[4],
-        text: cap[5]
+        anchor: cap[2],
+        text: cap[3]
       });
       continue;
     }
@@ -243,9 +243,9 @@ Lexer.prototype.token = function(src, top, bq) {
       src = src.substring(cap[0].length);
       this.tokens.push({
         type: 'heading',
-        depth: cap[5] === '=' ? 1 : 2,
-        anchor: cap[3],
-        text: cap[4]
+        depth: cap[3] === '=' ? 1 : 2,
+        anchor: cap[1],
+        text: cap[2]
       });
       continue;
     }

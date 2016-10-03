@@ -24,7 +24,7 @@ var handlerArgs = {
   code: ['code', 'lang', 'escaped', 'fenced'],
   blockquote: ['quote'],
   html: ['html'],
-  heading: ['text', 'level', 'raw'],
+  heading: ['text', 'level', 'raw', 'anchor'],
   anchor: ['id'],
   hr: [],
   list: ['body', 'ordered'],
